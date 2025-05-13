@@ -10,6 +10,18 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class FileDeletedAsyncListenerTest extends BaseTransactionalTest {
+    @Test
+    public void testUpdatePassword() throws Exception {
+        UserDao userDao = new UserDao();
+        User user = createUser("testUpdatePassword");
+
+        user.setPassword("test114514");
+        userDao.updatePassword(user, user.getId());
+
+        User userFromDb = userDao.getById(user.getId());
+        Assert.assertNotEquals("test114514", userFromDb.getPassword());
+        Assert.assertTrue(userFromDb.getPassword().length() > 10);
+    }
 
     @Test
     public void updateQuotaSizeKnown() throws Exception {
