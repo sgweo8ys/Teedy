@@ -20,6 +20,12 @@
       <groupId>com.sismics.docs</groupId>
       <artifactId>docs-core</artifactId>
     </dependency>
+
+    <dependency> 
+      <groupId>org.junit.jupiter</groupId> 
+      <artifactId>junit-jupiter</artifactId> 
+      <version>5.7.1</version> 
+    </dependency>
     
     <dependency>
       <groupId>com.sismics.docs</groupId>
@@ -146,130 +152,113 @@
   </build>
 
   <profiles>
-    <!-- Development profile (active by default) -->
+    <!-- 开发环境配置 -->
     <profile>
-      <id>dev</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-        <property>
-          <name>env</name>
-          <value>dev</value>
-        </property>
-      </activation>
-      
-      <build>
-        <resources>
-          <resource>
-            <directory>src/dev/resources</directory>
-            <filtering>false</filtering>
-            <excludes>
-              <exclude>**/config.properties</exclude>
-            </excludes>
-          </resource>
-          <resource>
-            <directory>src/dev/resources</directory>
-            <filtering>true</filtering>
-            <includes>
-              <include>**/config.properties</include>
-            </includes>
-          </resource>
-        </resources>
-
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-maven-plugin</artifactId>
-            <configuration>
-              <systemProperties>
-                <application.mode>dev</application.mode>
-                <docs.home>../data/docs</docs.home>
-              </systemProperties>
-              <webApp>
-                <contextPath>/docs-web</contextPath>
-                <overrideDescriptor>${project.basedir}/src/dev/main/webapp/web-override.xml</overrideDescriptor>
-              </webApp>
-            </configuration>
-          </plugin>
-          
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <forkCount>1</forkCount>
-              <reuseForks>false</reuseForks>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+        <id>dev</id>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+            <property>
+                <name>env</name>
+                <value>dev</value>
+            </property>
+        </activation>
+        <build>
+            <resources>
+                <resource>
+                    <directory>src/dev/resources</directory>
+                    <filtering>false</filtering>
+                    <excludes>
+                        <exclude>**/config.properties</exclude>
+                    </excludes>
+                </resource>
+                <resource>
+                    <directory>src/dev/resources</directory>
+                    <filtering>true</filtering>
+                    <includes>
+                        <include>**/config.properties</include>
+                    </includes>
+                </resource>
+            </resources>
+            <plugins>
+                <plugin>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-maven-plugin</artifactId>
+                    <configuration>
+                        <systemProperties>
+                            <application.mode>dev</application.mode>
+                            <docs.home>../data/docs</docs.home>
+                        </systemProperties>
+                        <webApp>
+                            <contextPath>/docs-web</contextPath>
+                            <overrideDescriptor>${project.basedir}/src/dev/main/webapp/web-override.xml</overrideDescriptor>
+                        </webApp>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
     </profile>
-    
-    <!-- Production profile -->
+
+    <!-- 生产环境配置 -->
     <profile>
-      <id>prod</id>
-      
-      <build>
-        <resources>
-          <resource>
-            <directory>src/prod/resources</directory>
-            <filtering>false</filtering>
-            <excludes>
-              <exclude>**/config.properties</exclude>
-            </excludes>
-          </resource>
-          <resource>
-            <directory>src/prod/resources</directory>
-            <filtering>true</filtering>
-            <includes>
-              <include>**/config.properties</include>
-            </includes>
-          </resource>
-        </resources>
-        
-        <plugins>
-        
-          <!-- Launch NPM & Grunt -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>generate-sources</phase>
-                <configuration>
-                  <target name="building">
-                    <!-- npm install -->
-                    <exec executable="cmd" dir="${project.basedir}/src/main/webapp" osfamily="windows" failonerror="true">
-                      <arg line="/c npm install" />
-                    </exec>
-                    <exec executable="npm" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
-                      <arg line="install" />
-                    </exec>
-                    <!-- grunt -->
-                    <exec executable="cmd" dir="${project.basedir}/src/main/webapp" osfamily="windows" failonerror="true">
-                      <arg line="/c grunt --apiurl=api" />
-                    </exec>
-                    <exec executable="grunt" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
-                      <arg line="--apiurl=api" />
-                    </exec>
-                  </target>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        
-          <!-- WAR generation -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-war-plugin</artifactId>
-            <configuration>
-              <warSourceDirectory>${project.basedir}/src/main/webapp/dist</warSourceDirectory>
-              <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+        <id>prod</id>
+        <build>
+            <resources>
+                <resource>
+                    <directory>src/prod/resources</directory>
+                    <filtering>false</filtering>
+                    <excludes>
+                        <exclude>**/config.properties</exclude>
+                    </excludes>
+                </resource>
+                <resource>
+                    <directory>src/prod/resources</directory>
+                    <filtering>true</filtering>
+                    <includes>
+                        <include>**/config.properties</include>
+                    </includes>
+                </resource>
+            </resources>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <configuration>
+                                <target name="building">
+                                    <!-- Unix 下的命令 -->
+                                    <exec executable="npm" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
+                                        <arg line="install" />
+                                    </exec>
+                                    <exec executable="grunt" dir="${project.basedir}/src/main/webapp" osfamily="unix" failonerror="true">
+                                        <arg line="--apiurl=api --force" />
+                                    </exec>
+                                    <!-- Windows 下的命令 -->
+                                    <exec executable="npm.cmd" dir="${project.basedir}/src/main/webapp" osfamily="dos" failonerror="true">
+                                        <arg line="install" />
+                                    </exec>
+                                    <exec executable="grunt.cmd" dir="${project.basedir}/src/main/webapp" osfamily="dos" failonerror="true">
+                                        <arg line="--apiurl=api" />
+                                    </exec>
+                                </target>
+                            </configuration>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <configuration>
+                        <warSourceDirectory>${project.basedir}/src/main/webapp/dist</warSourceDirectory>
+                        <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
     </profile>
   </profiles>
 </project>
