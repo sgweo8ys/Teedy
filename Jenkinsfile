@@ -1,66 +1,32 @@
 pipeline {
     agent any
-
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('dockerhub_credentials') // 凭证ID
-        DOCKER_IMAGE = 'sgweo8ys/teedy-app' // 替换为你的Docker Hub仓库名
-        DOCKER_TAG = "${env.BUILD_NUMBER}"
+        DEPLOYMENT_NAME = "hello-node"
+        CONTAINER_NAME = "docs"
+        IMAGE_NAME = "sismics/docs:v1.11"
     }
-
     stages {
-        // 构建项目
-        stage('Build') {
+        stage('Start Minikube') {
             steps {
-                checkout scmGit(
-                    branches: [[name: '*/master']],
-                    userRemoteConfigs: [[url: 'https://github.com/sgweo8ys/Teedy.git']] // 替换为你的仓库URL
-                )
-                sh 'mvn -B -DskipTests clean package'
+                sh '''
+                    if ! minikube status | grep -q "Running"; then
+                        echo "Starting Minikube..."
+                        minikube start
+                    else
+                        echo "Minikube already running."
+                    fi
+                '''
             }
         }
-
-        // 构建Docker镜像
-        stage('Build Image') {
+        stage('Set Image') {
             steps {
-                script {
-                    docker.build("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}")
-                }
+                sh "kubectl set image deployment/${DEPLOYMENT_NAME} ${CONTAINER_NAME}=${IMAGE_NAME}"
             }
         }
-
-        // 推送镜像到Docker Hub
-        stage('Push Image') {
+        stage('Verify') {
             steps {
-                script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_credentials') {
-                        docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}").push()
-                        docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}").push('latest')
-                    }
-                }
-            }
-        }
-
-        // 运行三个容器（8082、8083、8084）
-        stage('Run Containers') {
-            steps {
-                script {
-                    // 定义端口列表
-                    def ports = [8082, 8083, 8084]
-
-                    ports.each { port ->
-                        // 停止并删除旧容器
-                        sh "docker stop teedy-container-${port} || true"
-                        sh "docker rm teedy-container-${port} || true"
-
-                        // 运行新容器
-                        docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}").run(
-                            "--name teedy-container-${port} -d -p ${port}:8080"
-                        )
-                    }
-
-                    // 验证容器状态
-                    sh 'docker ps --filter "name=teedy-container"'
-                }
+                sh "kubectl rollout status deployment/${DEPLOYMENT_NAME}"
+                sh "kubectl get pods"
             }
         }
     }
