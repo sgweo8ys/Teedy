@@ -1102,6 +1102,75 @@ public class UserResource extends BaseResource {
     }
 
     /**
+     * Registers a new user and marks it as disabled.
+     *
+     * @api {post} /user/register_disabled Register a new user and mark it as disabled
+     * @apiName PostUserRegisterDisabled
+     * @apiGroup User
+     * @apiParam {String{3..50}} username Username
+     * @apiParam {String{8..50}} password Password
+     * @apiParam {String{1..100}} email E-mail
+     * @apiSuccess {String} status "disabled"
+     * @apiError (client) AlreadyExistingUsername If the username is already in use
+     * @apiVersion 1.5.0
+     *
+     * @param username Username
+     * @param password Password
+     * @param email E-Mail
+     * @return Response
+     */
+    @POST
+    @Path("register_disabled")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response registerDisabled(
+            @FormParam("username") String username,
+            @FormParam("password") String password,
+            @FormParam("email") String email) {
+        // 这里无需调用 authenticate()，允许未登录的访客注册
+        // Validate input data
+        username = ValidationUtil.validateLength(username, "username", 3, 50);
+        ValidationUtil.validateUsername(username, "username");
+        password = ValidationUtil.validateLength(password, "password", 8, 50);
+        email = ValidationUtil.validateLength(email, "email", 1, 100);
+        ValidationUtil.validateEmail(email, "email");
+        
+        // Check if a user with this username already exists
+        UserDao userDao = new UserDao();
+        User existingUser = userDao.getActiveByUsername(username);
+        if (existingUser != null) {
+            throw new ClientException("AlreadyExistingUsername", "Login already used");
+        }
+        
+        // Create a new user object, mark it as disabled by setting a disableDate (or special flag)
+        User user = new User();
+        user.setRoleId(Constants.DEFAULT_USER_ROLE);
+        user.setUsername(username);
+        user.setPassword(password);  // 密码建议后期加密处理
+        user.setEmail(email);
+        // 默认存储配额可以设为系统默认值
+        user.setStorageQuota(10000000L); // 1GB
+        user.setOnboarding(true);
+        // 设置禁用状态（例如，disableDate 不为空表示用户被禁用）
+        user.setDisableDate(new Date());
+        
+        // Create the user
+        try {
+            // 此处 principal 为空，因为访客注册，调用时可能传 null 或特殊标识
+            userDao.create(user, null);
+        } catch (Exception e) {
+            if ("AlreadyExistingUsername".equals(e.getMessage())) {
+                throw new ClientException("AlreadyExistingUsername", "Login already used", e);
+            } else {
+                throw new ServerException("UnknownError", "Unknown server error", e);
+            }
+        }
+        
+        JsonObjectBuilder responseBuilder = Json.createObjectBuilder()
+                .add("status", "disabled");
+        return Response.ok().entity(responseBuilder.build()).build();
+    }
+
+    /**
      * Returns the authentication token value.
      *
      * @return Token value

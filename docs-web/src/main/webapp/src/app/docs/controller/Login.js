@@ -19,6 +19,30 @@ angular.module('docs').controller('Login', function(Restangular, $scope, $rootSc
     };
     $scope.login();
   };
+
+  $scope.register = function() {
+    $uibModal.open({
+      templateUrl: 'partial/docs/modalRegister.html',
+      controller: 'ModalRegister'
+    }).result.then(function(newUser) {
+      // newUser 应包含 username, password, email 字段（密码确认逻辑在弹窗中已验证）
+      Restangular.one('user').customPOST({
+        username: newUser.username,
+        password: newUser.password,
+        email: newUser.email
+      }, 'register_disabled').then(function() {
+        var title = $translate.instant('register.success_title');
+        var msg = $translate.instant('register.success_message'); // 比如："注册成功，账号已被禁用，请等待管理员激活"
+        var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
+        $dialog.messageBox(title, msg, btns);
+      }, function() {
+        var title = $translate.instant('register.error_title');
+        var msg = $translate.instant('register.error_message');
+        var btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
+        $dialog.messageBox(title, msg, btns);
+      });
+    });
+  };
   
   // Login
   $scope.login = function() {

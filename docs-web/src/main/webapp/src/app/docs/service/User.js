@@ -24,7 +24,7 @@ angular.module('docs').factory('User', function(Restangular) {
     login: function(user) {
       return Restangular.one('user').post('login', user);
     },
-    
+
     /**
      * Logout the current user.
      */

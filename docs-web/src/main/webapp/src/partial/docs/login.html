@@ -79,6 +79,11 @@
           <button type="submit" class="btn btn-default btn-block" ng-if="app.guest_login" ng-click="loginAsGuest()">
             <span class="fas fa-user"></span> {{ 'login.login_as_guest' | translate }}
           </button>
+
+          <!-- 在已有的登录按钮和 guest login 按钮之后，添加注册按钮 -->
+          <button type="submit" class="btn btn-default btn-block" ng-click="register()">
+            <span class="fas fa-user-plus"></span> {{ 'login.register' | translate }}
+          </button>
         </form>
       </div>
     </div>
