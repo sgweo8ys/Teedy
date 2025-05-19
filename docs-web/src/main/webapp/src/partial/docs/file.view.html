@@ -31,6 +31,14 @@
     <button type="button" class="btn btn-default" uib-tooltip="Show text content" tooltip-append-to-body="true" ng-click="openFileContent()">
       <span class="fas fa-eye"></span>
     </button>
+    <!-- 新增：翻译按钮 -->
+    <button type="button" class="btn btn-default"
+            uib-tooltip="{{ 'file.view.translate' | translate }}"
+            tooltip-append-to-body="true"
+            ng-click="openTranslatedContent()">
+      <span class="fas fa-language"></span>
+      {{ 'file.view.translate' | translate }}
+    </button>
   </div>
 </div>
 

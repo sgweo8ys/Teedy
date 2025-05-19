@@ -51,6 +51,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import com.sismics.docs.rest.util.TranslationService;
 
 /**
  * File REST resources.
@@ -568,15 +569,28 @@ public class FileResource extends BaseResource {
     public Response data(
             @PathParam("id") final String fileId,
             @QueryParam("share") String shareId,
-            @QueryParam("size") String size) {
+            @QueryParam("size") String size,
+            @QueryParam("translate") Boolean translate) {  // ← 新增 translate
         authenticate();
-        
+
         if (size != null && !Lists.newArrayList("web", "thumb", "content").contains(size)) {
             throw new ClientException("SizeError", "Size must be web, thumb or content");
         }
 
-        // Get the file
         File file = findFile(fileId, shareId);
+
+        // 文本内容
+        if ("content".equals(size)) {
+            String text = Strings.nullToEmpty(file.getContent());
+            if (Boolean.TRUE.equals(translate)) {
+                TranslationService ts = new TranslationService();
+                // 这里第二个参数可传文档语言或目标语言
+                text = ts.translate(text, "zh");
+            }
+            return Response.ok(text)
+                    .header(HttpHeaders.CONTENT_TYPE, "text/plain; charset=utf-8")
+                    .build();
+        }
 
         // Get the stored file
         UserDao userDao = new UserDao();

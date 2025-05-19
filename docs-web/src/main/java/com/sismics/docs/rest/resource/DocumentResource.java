@@ -1,5 +1,7 @@
 package com.sismics.docs.rest.resource;
 
+import com.sismics.docs.rest.util.TranslationService;
+
 import com.google.common.collect.Lists;
 import com.sismics.docs.core.constant.AclType;
 import com.sismics.docs.core.constant.ConfigType;
@@ -177,8 +179,13 @@ public class DocumentResource extends BaseResource {
     public Response get(
             @PathParam("id") String documentId,
             @QueryParam("share") String shareId,
-            @QueryParam("files") Boolean files) {
+            @QueryParam("files") Boolean files,
+            @QueryParam("translate") Boolean translate) {
         authenticate();
+
+        if (translate == null) {
+            translate = Boolean.FALSE;
+        }
 
         DocumentDao documentDao = new DocumentDao();
         DocumentDto documentDto = documentDao.getDocument(documentId, PermType.READ, getTargetIdList(shareId));
